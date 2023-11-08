@@ -1,0 +1,65 @@
+%Definimos parámetro a optimizar, funciones del modelo y variables simbólicas:
+syms theta1; 
+syms  Ms(t) Me(t) Mi(t) Hs(t) He(t) Hi(t) Hr(t) Hit(t) 
+syms lambda beta_m mu_m theta_m mu_h beta_h theta_h gamma_h
+%Define los rangos de valores iniciales para Hi0, He0 y Mi0 proporcionados por la investigación del dengue:
+Hi0_range = [6, 24];  
+He0_range = [18, 72];  
+Mi0_range = [0, 100];  
+%Definición de las ecuaciones diferenciales y sus respectivas soluciones simbólicas:
+ode1 = diff(Ms) == lambda - beta_m*Hi*Ms/H - (mu_m)*Ms;
+sol1=dsolve(ode1);
+
+ode2 = diff(Me) == beta_m*Hi*Ms/H - (theta_m+mu_m)*Me;
+sol2=dsolve(ode2);
+
+ode3 = diff(Mi) == theta_m*Me - mu_m*Mi;
+sol3=dsolve(ode3);
+
+ode4 = diff(Hs) == -beta_h*Mi*Hs/M + (He+Hi+Hr)*mu_h;
+sol4=dsolve(ode4);
+
+ode5 = diff(He) == beta_h*Mi*Hs/M - (theta_h+mu_h)*He;
+sol5=dsolve(ode5);
+
+ode6 = diff(Hi) == theta_h*He - (gamma_h+mu_h)*Hi;
+sol6=dsolve(ode6);
+
+ode7 = diff(Hr) == gamma_h*Hi - mu_h*Hr;
+sol7=dsolve(ode7);
+
+ode8 = diff(Hit) == theta_h*He;
+sol8=dsolve(ode8);
+
+odes=[ode1; ode2; ode3; ode4; ode5; ode6; ode7; ode8];
+vars=[Hit Hi Me Hr Hs He Ms Mi];
+
+%Genera valores iniciales aleatorios dentro de los rangos especificados:
+Hi0_initial = randi(Hi0_range);  % Valor inicial aleatorio para Hi0
+He0_initial = randi(He0_range);  % Valor inicial aleatorio para He0
+Mi0_initial = randi(Mi0_range);  % Valor inicial aleatorio para Mi0
+
+%Define la función objetivo J en función de Hi0, He0 y Mi0:
+J = Hi0_initial + He0_initial + Mi0_initial;
+
+%Muestra los valores iniciales generados aleatoriamente:
+fprintf('Valor inicial aleatorio para Hi0: %d\n', Hi0_initial);
+fprintf('Valor inicial aleatorio para He0: %d\n', He0_initial);
+fprintf('Valor inicial aleatorio para Mi0: %d\n', Mi0_initial);
+
+%Define los límites inferiores y superiores para theta1 (aleatorios):
+lb = [0, 0];  % Límites inferiores para theta1 
+ub = [1, 1];  % Límites superiores para theta1 
+
+%Valor inicial para la optimización:
+x0 = [0.5, 0.5];  % Valor inicial arbitrario para theta1
+
+%Realizamos la optimización con la función "fmincon":
+options = optimoptions('fmincon', 'Display', 'iter');
+optimal_parameters = fmincon(@(x) J, x0, [], [], [], [], lb, ub, [], options);
+
+%Obtiene los valore óptimo de theta1:
+optimal_theta1 = optimal_parameters(1);
+
+%Imprimimos el resultado:
+fprintf('Valor óptimo de theta1: %.4f\n', optimal_theta1);
